@@ -12,14 +12,16 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Pop!",
+                                                                 style: .plain,
+                                                                 target: self,
+                                                                 action: #selector(pop))
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    func pop() {
+        guard let rightButton = self.navigationItem.rightBarButtonItem else { return }
+        _ = PopoverMenuController.show(on: rightButton, viewController: self)
     }
-
-
+    
 }
 
