@@ -99,7 +99,7 @@ class PopoverBackgroundView: UIPopoverBackgroundView {
         super.init(frame: frame)
         self.layer.cornerRadius = 3.0
         self.layer.shadowRadius = 18.0
-        self.layer.shadowColor = UIColor.red.withAlphaComponent(0.5).cgColor
+        self.layer.shadowColor = UIColor.red.cgColor
         self.arrowView = TriangleView(frame: CGRect(x: 0, y: 0, width: arrow.base, height: arrow.height))
         self.addSubview(arrowView!)
     }
@@ -111,7 +111,7 @@ class PopoverBackgroundView: UIPopoverBackgroundView {
     override var arrowOffset: CGFloat {
         get { return arrow.offset }
         set {
-            arrow.offset = arrowOffset
+            arrow.offset = newValue
             setNeedsLayout()
         }
     }
@@ -119,14 +119,14 @@ class PopoverBackgroundView: UIPopoverBackgroundView {
     override var arrowDirection: UIPopoverArrowDirection {
         get { return arrow.direction.popoverDirection }
         set {
-            guard let direction = Direction.transform(from: arrowDirection) else { return }
+            guard let direction = Direction.transform(from: newValue) else { return }
             arrow.direction = direction
             setNeedsLayout()
         }
     }
     
     override class var wantsDefaultContentAppearance: Bool {
-        return true
+        return false
     }
     
     override static func arrowBase() -> CGFloat {
@@ -138,7 +138,7 @@ class PopoverBackgroundView: UIPopoverBackgroundView {
     }
     
     override static func contentViewInsets() -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 0)
+        return UIEdgeInsets.zero
     }
     
     override func layoutSubviews() {
@@ -197,6 +197,8 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     private(set) var actions = [MenuAction]()
     private(set) var barButtonItem: UIBarButtonItem?
     var rowHeight: CGFloat = 47.0
+    //customizable: rowHeight tableViewInsets arrow? shadow cornerRadius
+    //customizable-color: seperator default/destructive-text
     
     static func show(on barButtonItem: UIBarButtonItem, viewController: UIViewController) -> PopoverMenuController {
         let controller = PopoverMenuController()
@@ -208,7 +210,7 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
         controller.popoverPresentationController?.sourceView = controller.tableView
         controller.popoverPresentationController?.permittedArrowDirections = .any
         controller.popoverPresentationController?.popoverBackgroundViewClass = PopoverBackgroundView.self
-        
+
         viewController.present(controller, animated: true, completion: nil)
         return controller
     }
@@ -229,6 +231,12 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     private func setupView() {
         tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 1))
         tableView.separatorColor = UIColor.lightGray.withAlphaComponent(0.15)
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+        tableView.contentOffset = CGPoint(x: -10, y: 0)
+        tableView.isScrollEnabled = false
+        tableView.showsVerticalScrollIndicator = false
+        tableView.showsHorizontalScrollIndicator = false
+        tableView.reloadData()
     }
     
     private func mockData() {
