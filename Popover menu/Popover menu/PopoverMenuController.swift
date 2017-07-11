@@ -191,8 +191,10 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     }
     
     func pop(on barButtonItem: UIBarButtonItem, in viewController: UIViewController) {
+        let height = Int(rowHeight) * actions.count
+        
         self.modalPresentationStyle = .popover
-        self.preferredContentSize = CGSize(width: 150, height: 190)
+        self.preferredContentSize = CGSize(width: 150, height: height)
         
         self.popoverPresentationController?.delegate = self
         self.popoverPresentationController?.barButtonItem = barButtonItem
