@@ -177,6 +177,13 @@ class TriangleView : UIView {
     }
 }
 
+struct PopoverOption {
+    var font: UIFont = UIFont.boldSystemFont(ofSize: 12.0)
+    var fontColor: UIColor = UIColor(red: 66/255, green: 66/255, blue: 66/255, alpha: 1.0)
+    var rowHeight: CGFloat = 47.0
+    var cornerRadius: CGFloat = 5.0
+}
+
 class PopoverMenuController: UITableViewController, UIPopoverPresentationControllerDelegate {
     
     private(set) var actions = [MenuAction]()
