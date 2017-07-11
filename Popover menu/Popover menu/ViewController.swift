@@ -34,10 +34,10 @@ class ViewController: UIViewController {
             print("### cancel booking")
         })
         let menus = [dateAction, roomAction, guestAction, cancelAction]
-        
-        let controller = PopoverMenuController(with: menus)
+        var option = PopoverOption()
+        option.menuInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
+        let controller = PopoverMenuController(with: menus, and: option)
         controller.pop(on: rightBarButton, in: self)
     }
     
 }
-

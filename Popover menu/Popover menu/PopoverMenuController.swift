@@ -178,30 +178,49 @@ class TriangleView : UIView {
 }
 
 struct PopoverOption {
-    var font: UIFont = UIFont.boldSystemFont(ofSize: 12.0)
-    var fontColor: UIColor = UIColor(red: 66/255, green: 66/255, blue: 66/255, alpha: 1.0)
+    
+    var preferredWidth: Int = 150
+    var preferredHeight: Int? //if nil, the popover will use actual content height
     var rowHeight: CGFloat = 47.0
+    
     var cornerRadius: CGFloat = 5.0
+    var menuInset: UIEdgeInsets = UIEdgeInsets.zero
+    
+    var font: UIFont = UIFont.boldSystemFont(ofSize: 12.0)
+    
+    var defaultFontColor: UIColor = UIColor(red: 66/255, green: 66/255, blue: 66/255, alpha: 1.0)
+    var cancelFontColor: UIColor = UIColor(red: 230/255, green: 230/255, blue: 230/255, alpha: 1.0)
+    var destructiveFontColor: UIColor = UIColor(red: 228/255, green: 23/255, blue: 14/255, alpha: 1.0)
+    var seperatorColor: UIColor = UIColor(red: 246/255, green: 246/255, blue: 246/255, alpha: 1.0)
+    
+    func fontColor(for style: UIAlertActionStyle) -> UIColor {
+        switch style {
+        case .default:      return defaultFontColor
+        case .cancel:       return cancelFontColor
+        case .destructive:  return destructiveFontColor
+        }
+    }
 }
 
 class PopoverMenuController: UITableViewController, UIPopoverPresentationControllerDelegate {
     
     private(set) var actions = [MenuAction]()
-    
-    var rowHeight: CGFloat = 47.0
+    private(set) var option = PopoverOption()
     //customizable: rowHeight tableViewInsets arrow? shadow cornerRadius
     //customizable-color: seperator default/destructive-text
     
-    convenience init(with menus: [MenuAction]) {
+    convenience init(with menus: [MenuAction], and option: PopoverOption? = nil) {
         self.init()
         self.actions = menus
+        if let option = option {
+            self.option = option
+        }
     }
     
     func pop(on barButtonItem: UIBarButtonItem, in viewController: UIViewController) {
-        let height = Int(rowHeight) * actions.count
-        
+        let height = option.preferredHeight ?? Int(option.rowHeight) * actions.count
+        self.preferredContentSize = CGSize(width: option.preferredWidth, height: height)
         self.modalPresentationStyle = .popover
-        self.preferredContentSize = CGSize(width: 150, height: height)
         
         self.popoverPresentationController?.delegate = self
         self.popoverPresentationController?.barButtonItem = barButtonItem
@@ -220,7 +239,7 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if let containerView = self.view.superview {
-            containerView.layer.cornerRadius = 5.0
+            containerView.layer.cornerRadius = option.cornerRadius
             //note:- workaround to add custom shadow for popover
             if let popoverView = containerView.superview {
                 popoverView.layer.shadowColor = UIColor.black.cgColor
@@ -240,9 +259,12 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     
     private func setupView() {
         tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 1))
-        tableView.separatorColor = UIColor.lightGray.withAlphaComponent(0.15) //todo:- change
-        tableView.contentInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
-        tableView.contentOffset = CGPoint(x: -10, y: 0)
+        tableView.separatorColor = option.seperatorColor
+        
+        let inset = option.menuInset
+        tableView.contentInset = inset
+        tableView.contentOffset = CGPoint(x: inset.right-inset.left, y: inset.bottom-inset.top)
+        
         tableView.isScrollEnabled = false
         tableView.showsVerticalScrollIndicator = false
         tableView.showsHorizontalScrollIndicator = false
@@ -253,7 +275,7 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return rowHeight
+        return option.rowHeight
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -262,14 +284,15 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell")
+        let action = actions[indexPath.row]
         if (cell == nil) {
             cell = UITableViewCell(style: .default, reuseIdentifier: "UITableViewCell")
             cell?.selectionStyle = .none
-            cell?.textLabel?.font = UIFont.boldSystemFont(ofSize: 12)
-            cell?.textLabel?.textColor = UIColor.darkGray
+            cell?.textLabel?.font = option.font
+            cell?.textLabel?.textColor = option.fontColor(for: action.style)
             cell?.backgroundColor = .clear
         }
-        cell?.textLabel?.text = actions[indexPath.row].title
+        cell?.textLabel?.text = action.title
         return cell!
     }
     
