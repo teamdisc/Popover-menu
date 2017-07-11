@@ -19,8 +19,24 @@ class ViewController: UIViewController {
     }
     
     func pop() {
-        guard let rightButton = self.navigationItem.rightBarButtonItem else { return }
-        _ = PopoverMenuController.show(on: rightButton, viewController: self)
+        guard let rightBarButton = self.navigationItem.rightBarButtonItem else { return }
+        
+        let dateAction = MenuAction(title:"Change dates", style: .default, handler: { _ in
+            print("### change dates")
+        })
+        let roomAction = MenuAction(title:"Change room type", style: .default, handler: { _ in
+            print("### change room type")
+        })
+        let guestAction = MenuAction(title:"Edit guest details", style: .default, handler: { _ in
+            print("### edit guest detail")
+        })
+        let cancelAction = MenuAction(title:"Cancel booking", style: .destructive, handler: { _ in
+            print("### cancel booking")
+        })
+        let menus = [dateAction, roomAction, guestAction, cancelAction]
+        
+        let controller = PopoverMenuController(with: menus)
+        controller.pop(on: rightBarButton, in: self)
     }
     
 }

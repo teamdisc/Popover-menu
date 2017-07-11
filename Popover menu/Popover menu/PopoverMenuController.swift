@@ -94,16 +94,12 @@ class PopoverBackgroundView: UIPopoverBackgroundView {
     static let PROTOTYPE_ARROW = Arrow()
     private var arrow = Arrow()
     private var arrowView: UIView?
-    private var backgroundView: UIView?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.layer.shadowColor = UIColor.clear.cgColor
-        self.backgroundView = UIView()
-        self.backgroundView?.layer.shadowColor = UIColor.red.cgColor
         self.arrowView = TriangleView(frame: CGRect(x: 0, y: 0, width: arrow.base, height: arrow.height))
         self.addSubview(arrowView!)
-        self.addSubview(backgroundView!)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -145,22 +141,7 @@ class PopoverBackgroundView: UIPopoverBackgroundView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        let arrowFrame = arrow.frame(container: self.bounds)
-        var backgroundFrame = self.bounds
-        switch arrow.direction {
-        case .up:
-            backgroundFrame.origin.y += arrowFrame.height
-            backgroundFrame.size.height -= arrowFrame.height
-        case .down:
-            backgroundFrame.size.height -= arrowFrame.height
-        case .left:
-            backgroundFrame.origin.x += arrowFrame.width
-            backgroundFrame.size.width -= arrowFrame.width
-        case .right:
-            backgroundFrame.size.width -= arrowFrame.width
-        }
-        arrowView?.frame = arrowFrame
-        backgroundView?.frame = backgroundFrame
+        arrowView?.frame = arrow.frame(container: self.bounds)
     }
 }
 
@@ -199,29 +180,31 @@ class TriangleView : UIView {
 class PopoverMenuController: UITableViewController, UIPopoverPresentationControllerDelegate {
     
     private(set) var actions = [MenuAction]()
-    private(set) var barButtonItem: UIBarButtonItem?
+    
     var rowHeight: CGFloat = 47.0
     //customizable: rowHeight tableViewInsets arrow? shadow cornerRadius
     //customizable-color: seperator default/destructive-text
     
-    static func show(on barButtonItem: UIBarButtonItem, viewController: UIViewController) -> PopoverMenuController {
-        let controller = PopoverMenuController()
-        controller.modalPresentationStyle = .popover
-        controller.preferredContentSize = CGSize(width: 150, height: 190)
+    convenience init(with menus: [MenuAction]) {
+        self.init()
+        self.actions = menus
+    }
+    
+    func pop(on barButtonItem: UIBarButtonItem, in viewController: UIViewController) {
+        self.modalPresentationStyle = .popover
+        self.preferredContentSize = CGSize(width: 150, height: 190)
         
-        controller.popoverPresentationController?.delegate = controller
-        controller.popoverPresentationController?.barButtonItem = barButtonItem
-        controller.popoverPresentationController?.sourceView = controller.tableView
-        controller.popoverPresentationController?.permittedArrowDirections = .any
-        controller.popoverPresentationController?.popoverBackgroundViewClass = PopoverBackgroundView.self
+        self.popoverPresentationController?.delegate = self
+        self.popoverPresentationController?.barButtonItem = barButtonItem
+        self.popoverPresentationController?.sourceView = self.tableView
+        self.popoverPresentationController?.permittedArrowDirections = .any
+        self.popoverPresentationController?.popoverBackgroundViewClass = PopoverBackgroundView.self
 
-        viewController.present(controller, animated: true, completion: nil)
-        return controller
+        viewController.present(self, animated: true, completion: nil)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        mockData()
         setupView()
     }
     
@@ -248,32 +231,12 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     
     private func setupView() {
         tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 1))
-        tableView.separatorColor = UIColor.lightGray.withAlphaComponent(0.15)
+        tableView.separatorColor = UIColor.lightGray.withAlphaComponent(0.15) //todo:- change
         tableView.contentInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
         tableView.contentOffset = CGPoint(x: -10, y: 0)
         tableView.isScrollEnabled = false
         tableView.showsVerticalScrollIndicator = false
         tableView.showsHorizontalScrollIndicator = false
-        tableView.reloadData()
-    }
-    
-    private func mockData() {
-        let dateAction = MenuAction(title:"Change dates", style: .default, handler: { _ in
-            print("### change dates")
-        })
-        let roomAction = MenuAction(title:"Change room type", style: .default, handler: { _ in
-            print("### change room type")
-        })
-        let guestAction = MenuAction(title:"Edit guest details", style: .default, handler: { _ in
-            print("### edit guest detail")
-        })
-        let cancelAction = MenuAction(title:"Cancel booking", style: .destructive, handler: { _ in
-            print("### cancel booking")
-        })
-        addAction(dateAction)
-        addAction(roomAction)
-        addAction(guestAction)
-        addAction(cancelAction)
     }
     
     func addAction(_ action: MenuAction) {
@@ -289,9 +252,9 @@ class PopoverMenuController: UITableViewController, UIPopoverPresentationControl
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        var cell = tableView.dequeueReusableCell(withIdentifier: "test")
+        var cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell")
         if (cell == nil) {
-            cell = UITableViewCell(style: .default, reuseIdentifier: "test")
+            cell = UITableViewCell(style: .default, reuseIdentifier: "UITableViewCell")
             cell?.selectionStyle = .none
             cell?.textLabel?.font = UIFont.boldSystemFont(ofSize: 12)
             cell?.textLabel?.textColor = UIColor.darkGray
